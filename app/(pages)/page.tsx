@@ -9,7 +9,9 @@ export default function Home() {
 			<Suspense>
 				<Filters />
 
-				<ImageGrid />
+				<div className="flex-1">
+					<ImageGrid />
+				</div>
 
 				<PaginationWrapper />
 			</Suspense>
