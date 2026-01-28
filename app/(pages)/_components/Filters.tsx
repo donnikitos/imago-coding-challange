@@ -35,7 +35,7 @@ export function Filters() {
 		key: K,
 		value: FiltersProps['values'][K],
 	) {
-		setFilters((p) => ({ ...p, [key]: value }));
+		setFilters((p) => ({ ...p, [key]: value, seite: 1 }));
 	}
 
 	const { data } = useQuery({
