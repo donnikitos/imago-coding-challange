@@ -1,20 +1,15 @@
-import React from 'react';
+'use client';
+
 import { Hash } from 'lucide-react';
-import { IImageEntry } from '@/interfaces/image-entry';
 import ImageCard from './components/ImageCard';
+import useImagesList from '@/app/(pages)/_queries/useImagesList';
+import useFilters from '@/app/(pages)/_hooks/useFilters';
 
-interface ImageGridProps {
-	images: IImageEntry[];
-	loading: boolean;
-	searchQuery: string;
-}
+export function ImageGrid() {
+	const [filters] = useFilters();
+	const { data, isLoading, error } = useImagesList(filters);
 
-export const ImageGrid: React.FC<ImageGridProps> = ({
-	images,
-	loading,
-	searchQuery,
-}) => {
-	if (images.length === 0) {
+	if (!isLoading && data?.items.length === 0) {
 		return (
 			<div className="flex flex-col items-center justify-center py-24 px-6 text-center">
 				<div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
@@ -30,9 +25,17 @@ export const ImageGrid: React.FC<ImageGridProps> = ({
 		);
 	}
 
+	if (error) {
+		return (
+			<div className="p-12 text-center text-red-500 font-medium">
+				Error loading images. Please try again later.
+			</div>
+		);
+	}
+
 	return (
 		<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
-			{loading
+			{isLoading
 				? [...Array(6)].map((_, i) => (
 						<div
 							key={i}
@@ -46,13 +49,13 @@ export const ImageGrid: React.FC<ImageGridProps> = ({
 							</div>
 						</div>
 					))
-				: images.map((image) => (
+				: data?.items.map((image) => (
 						<ImageCard
 							key={image.bildnummer}
 							image={image}
-							searchQuery={searchQuery}
+							searchQuery={filters.suche}
 						/>
 					))}
 		</div>
 	);
-};
+}

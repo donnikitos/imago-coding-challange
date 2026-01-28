@@ -1,8 +1,6 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-// import { FilterState, SortOrder } from '../types';
-// import { CREDITS, RESTRICTIONS } from '../data/mockImages';
 import {
 	Search,
 	Filter,
@@ -15,6 +13,7 @@ import {
 import debounce from 'just-debounce-it';
 import formatIsoDate from '@/utils/formatIsoDate';
 import { useQuery } from '@tanstack/react-query';
+import useFilters from '../_hooks/useFilters';
 
 export type FiltersProps = {
 	values: {
@@ -30,7 +29,15 @@ export type FiltersProps = {
 	) => void;
 };
 
-export function Filters({ values, onChange }: FiltersProps) {
+export function Filters() {
+	const [filters, setFilters] = useFilters();
+	function onChange<K extends keyof FiltersProps['values']>(
+		key: K,
+		value: FiltersProps['values'][K],
+	) {
+		setFilters((p) => ({ ...p, [key]: value }));
+	}
+
 	const { data } = useQuery({
 		queryKey: ['search-suggestions'],
 		queryFn() {
@@ -44,7 +51,7 @@ export function Filters({ values, onChange }: FiltersProps) {
 		},
 	});
 
-	const [search, setSearch] = useState(values.suche);
+	const [search, setSearch] = useState(filters.suche);
 
 	const debouncedSearch = useCallback(
 		debounce((search: string) => {
@@ -74,7 +81,10 @@ export function Filters({ values, onChange }: FiltersProps) {
 				{/* Sorting */}
 				<button
 					onClick={() =>
-						onChange('sort', values.sort === 'asc' ? 'desc' : 'asc')
+						onChange(
+							'sort',
+							filters.sort === 'asc' ? 'desc' : 'asc',
+						)
 					}
 					className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
 				>
@@ -82,14 +92,14 @@ export function Filters({ values, onChange }: FiltersProps) {
 						{
 							asc: <SortDesc className="w-4 h-4" />,
 							desc: <SortAsc className="w-4 h-4" />,
-						}[values.sort]
+						}[filters.sort]
 					}
 					<span className="text-sm font-medium">
 						{
 							{
 								asc: 'Oldest First',
 								desc: 'Newest First',
-							}[values.sort]
+							}[filters.sort]
 						}
 					</span>
 				</button>
@@ -104,7 +114,7 @@ export function Filters({ values, onChange }: FiltersProps) {
 					<div className="relative">
 						<select
 							className="w-full appearance-none px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-							value={values.credit}
+							value={filters.credit}
 							onChange={(e) => onChange('credit', e.target.value)}
 						>
 							<option value="">All Sources</option>
@@ -128,8 +138,8 @@ export function Filters({ values, onChange }: FiltersProps) {
 							type="date"
 							className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 							value={
-								values.date[0]
-									? formatIsoDate(values.date[0])
+								filters.date[0]
+									? formatIsoDate(filters.date[0])
 									: ''
 							}
 							onChange={(e) => {
@@ -139,30 +149,30 @@ export function Filters({ values, onChange }: FiltersProps) {
 										[
 											e.target.value &&
 												new Date(e.target.value),
-											values.date[1],
+											filters.date[1],
 										] as Date[]
 									).filter(Boolean),
 								);
 							}}
 						/>
-						{values.date.length >= 1 && (
+						{filters.date.length >= 1 && (
 							<>
 								<span className="text-gray-400">–</span>
 								<input
 									type="date"
 									className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 									value={
-										values.date[1]
-											? formatIsoDate(values.date[1])
+										filters.date[1]
+											? formatIsoDate(filters.date[1])
 											: ''
 									}
-									min={formatIsoDate(values.date[0])}
+									min={formatIsoDate(filters.date[0])}
 									onChange={(e) =>
 										onChange(
 											'date',
 											(
 												[
-													values.date[0],
+													filters.date[0],
 													e.target.value &&
 														new Date(
 															e.target.value,
@@ -185,14 +195,14 @@ export function Filters({ values, onChange }: FiltersProps) {
 					<div className="flex flex-wrap gap-2">
 						{data?.restrictions.map((restriction) => {
 							const isActive =
-								values.restrictions.includes(restriction);
+								filters.restrictions.includes(restriction);
 
 							return (
 								<button
 									key={restriction}
 									onClick={() => {
 										const vals = new Set(
-											values.restrictions,
+											filters.restrictions,
 										);
 										if (isActive) {
 											vals.delete(restriction);
